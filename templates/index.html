@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Artisan Product Intelligence</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f5f7fb;
+            color: #222;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        /* HEADER */
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+            font-size: 30px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 15px;
+        }
+
+        /* LANGUAGE */
+
+        .language-box {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .language-box label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            background: white;
+        }
+
+        /* PROMPTS */
+
+        .prompts {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .prompt-card {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #eee;
+        }
+
+        .prompt-card h3 {
+            font-size: 15px;
+            margin-bottom: 5px;
+        }
+
+        .prompt-card p {
+            color: #777;
+            font-size: 13px;
+        }
+
+        /* MICROPHONE */
+
+        .voice-section {
+            background: white;
+            border-radius: 16px;
+            padding: 30px 20px;
+            text-align: center;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.07);
+            margin-bottom: 20px;
+        }
+
+        .mic-button {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            border: none;
+            background: #222;
+            color: white;
+            font-size: 45px;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .mic-button:hover {
+            transform: scale(1.05);
+        }
+
+        .mic-button.recording {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.08);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .voice-status {
+            margin-top: 15px;
+            font-size: 15px;
+            color: #555;
+        }
+
+        .stop-button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #444;
+            color: white;
+            cursor: pointer;
+            display: none;
+        }
+
+        /* RESULT */
+
+        .result-section {
+            display: none;
+        }
+
+        .box {
+            background: white;
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 18px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        }
+
+        .box h2 {
+            font-size: 19px;
+            margin-bottom: 15px;
+        }
+
+        /* TRANSCRIPTION */
+
+        .transcription {
+            background: #f1f3f6;
+            padding: 15px;
+            border-radius: 10px;
+            line-height: 1.6;
+            min-height: 60px;
+        }
+
+        /* PRODUCT FIELDS */
+
+        .fields {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .field label {
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .field input,
+        .field textarea {
+            padding: 11px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .full {
+            grid-column: 1 / -1;
+        }
+
+        /* MISSING INFO */
+
+        .missing {
+            background: #fff7e6;
+            border: 1px solid #f0d58a;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .missing ul {
+            margin-left: 20px;
+            margin-top: 8px;
+        }
+
+        /* BUTTONS */
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 13px;
+            border: none;
+            border-radius: 9px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .confirm {
+            background: #222;
+            color: white;
+        }
+
+        .again {
+            background: #e9ebef;
+            color: #222;
+        }
+
+        /* LOADING */
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 15px;
+            color: #555;
+        }
+
+        /* MOBILE */
+
+        @media (max-width: 600px) {
+
+            .container {
+                padding: 12px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .prompts {
+                grid-template-columns: 1fr;
+            }
+
+            .fields {
+                grid-template-columns: 1fr;
+            }
+
+            .full {
+                grid-column: auto;
+            }
+
+            .mic-button {
+                width: 95px;
+                height: 95px;
+                font-size: 38px;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- HEADER -->
+
+    <div class="header">
+        <h1>🧵 Artisan Product Intelligence</h1>
+
+        <p>
+            Speak naturally about your product and let AI create structured
+            product information.
+        </p>
+    </div>
+
+
+    <!-- LANGUAGE -->
+
+    <div class="language-box">
+
+        <label for="language">
+            🌐 Language
+        </label>
+
+        <select id="language">
+
+            <option value="auto">
+                Auto Detect
+            </option>
+
+            <option value="hi">
+                Hindi
+            </option>
+
+            <option value="en">
+                English
+            </option>
+
+            <option value="hinglish">
+                Hinglish
+            </option>
+
+            <option value="regional">
+                Regional Language
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <!-- PROMPTS -->
+
+    <div class="prompts">
+
+        <div class="prompt-card">
+            <h3>🛍️ Product</h3>
+            <p>What product are you selling?</p>
+        </div>
+
+        <div class="prompt-card">
+            <h3>🧱 Material</h3>
+            <p>What material is it made from?</p>
+        </div>
+
+        <div class="prompt-card">
+            <h3>📏 Dimensions</h3>
+            <p>Mention size or dimensions if known.</p>
+        </div>
+
+        <div class="prompt-card">
+            <h3>🧼 Care</h3>
+            <p>Tell us cleaning or storage instructions.</p>
+        </div>
+
+        <div class="prompt-card">
+            <h3>✨ Features</h3>
+            <p>Tell us about special features or uniqueness.</p>
+        </div>
+
+        <div class="prompt-card">
+            <h3>💰 Price</h3>
+            <p>Mention the price if you already have one.</p>
+        </div>
+
+    </div>
+
+
+    <!-- VOICE -->
+
+    <div class="voice-section">
+
+        <button
+            id="micButton"
+            class="mic-button"
+            onclick="startRecording()"
+        >
+            🎤
+        </button>
+
+        <div id="voiceStatus" class="voice-status">
+            Tap the microphone and start speaking
+        </div>
+
+        <button
+            id="stopButton"
+            class="stop-button"
+            onclick="stopRecording()"
+        >
+            ⏹ Stop Recording
+        </button>
+
+    </div>
+
+
+    <!-- LOADING -->
+
+    <div id="loading" class="loading">
+
+        Processing your voice... Please wait.
+
+    </div>
+
+
+    <!-- RESULT -->
+
+    <div id="resultSection" class="result-section">
+
+        <!-- TRANSCRIPTION -->
+
+        <div class="box">
+
+            <h2>🗣️ Your Speech</h2>
+
+            <div
+                id="transcription"
+                class="transcription"
+            ></div>
+
+        </div>
+
+
+        <!-- PRODUCT INFORMATION -->
+
+        <div class="box">
+
+            <h2>📋 Product Information</h2>
+
+            <div class="fields">
+
+                <div class="field">
+                    <label>Product Name</label>
+                    <input id="product_name">
+                </div>
+
+                <div class="field">
+                    <label>Category</label>
+                    <input id="category">
+                </div>
+
+                <div class="field">
+                    <label>Material</label>
+                    <input id="material">
+                </div>
+
+                <div class="field">
+                    <label>Colour</label>
+                    <input id="colour">
+                </div>
+
+                <div class="field">
+                    <label>Craft Technique</label>
+                    <input id="craft_technique">
+                </div>
+
+                <div class="field">
+                    <label>Usage</label>
+                    <input id="usage">
+                </div>
+
+                <div class="field">
+                    <label>Origin</label>
+                    <input id="origin">
+                </div>
+
+                <div class="field">
+                    <label>Price</label>
+                    <input id="price">
+                </div>
+
+                <div class="field">
+                    <label>Length</label>
+                    <input id="length">
+                </div>
+
+                <div class="field">
+                    <label>Width</label>
+                    <input id="width">
+                </div>
+
+                <div class="field">
+                    <label>Height</label>
+                    <input id="height">
+                </div>
+
+                <div class="field">
+                    <label>Unit</label>
+                    <input id="unit">
+                </div>
+
+                <div class="field full">
+
+                    <label>Care Instructions</label>
+
+                    <textarea id="care_instructions"></textarea>
+
+                </div>
+
+                <div class="field full">
+
+                    <label>Special Features</label>
+
+                    <textarea id="special_features"></textarea>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- MISSING INFORMATION -->
+
+        <div
+            id="missingBox"
+            class="box"
+            style="display:none;"
+        >
+
+            <h2>❓ Missing Information</h2>
+
+            <div class="missing">
+
+                <p>
+                    Some information is missing. You can provide it
+                    by recording again.
+                </p>
+
+                <ul id="missingList"></ul>
+
+            </div>
+
+        </div>
+
+
+        <!-- ACTIONS -->
+
+        <div class="actions">
+
+            <button
+                class="btn confirm"
+                onclick="confirmProduct()"
+            >
+                ✅ Confirm Product
+            </button>
+
+            <button
+                class="btn again"
+                onclick="recordAgain()"
+            >
+                🎤 Record Again
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+let mediaRecorder;
+let audioChunks = [];
+
+const micButton =
+    document.getElementById("micButton");
+
+const stopButton =
+    document.getElementById("stopButton");
+
+const voiceStatus =
+    document.getElementById("voiceStatus");
+
+const loading =
+    document.getElementById("loading");
+
+const resultSection =
+    document.getElementById("resultSection");
+
+
+// ==========================================
+// START RECORDING
+// ==========================================
+
+async function startRecording() {
+
+    try {
+
+        const stream =
+            await navigator.mediaDevices.getUserMedia({
+                audio: true
+            });
+
+        audioChunks = [];
+
+        mediaRecorder =
+            new MediaRecorder(stream);
+
+        mediaRecorder.ondataavailable = function(event) {
+
+            if (event.data.size > 0) {
+                audioChunks.push(event.data);
+            }
+
+        };
+
+        mediaRecorder.onstop = function() {
+
+            stream.getTracks().forEach(track => {
+                track.stop();
+            });
+
+            const audioBlob =
+                new Blob(audioChunks, {
+                    type: "audio/webm"
+                });
+
+            sendAudio(audioBlob);
+        };
+
+
+        mediaRecorder.start();
+
+        micButton.classList.add("recording");
+
+        micButton.innerHTML = "🔴";
+
+        stopButton.style.display = "inline-block";
+
+        voiceStatus.innerText =
+            "Listening... Speak naturally";
+
+    }
+
+    catch (error) {
+
+        console.log("Microphone error:", error);
+
+        voiceStatus.innerText =
+            "Microphone could not be started.";
+
+    }
+
+}
+
+
+// ==========================================
+// STOP RECORDING
+// ==========================================
+
+function stopRecording() {
+
+    if (
+        mediaRecorder &&
+        mediaRecorder.state !== "inactive"
+    ) {
+
+        mediaRecorder.stop();
+
+        micButton.classList.remove("recording");
+
+        micButton.innerHTML = "🎤";
+
+        stopButton.style.display = "none";
+
+        voiceStatus.innerText =
+            "Processing your speech...";
+
+    }
+
+}
+
+
+// ==========================================
+// SEND AUDIO TO FLASK
+// ==========================================
+
+async function sendAudio(audioBlob) {
+
+    loading.style.display = "block";
+
+    resultSection.style.display = "none";
+
+
+    const formData =
+        new FormData();
+
+    formData.append(
+        "audio",
+        audioBlob,
+        "artisan_voice.webm"
+    );
+
+
+    formData.append(
+        "language",
+        document.getElementById("language").value
+    );
+
+
+    try {
+
+        const response =
+            await fetch("/process", {
+
+                method: "POST",
+
+                body: formData
+
+            });
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.error || "Processing failed"
+            );
+
+        }
+
+
+        displayResult(data);
+
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        voiceStatus.innerText =
+            "Something went wrong while processing.";
+
+        alert(
+            "Processing error: " + error.message
+        );
+
+    }
+
+    finally {
+
+        loading.style.display = "none";
+
+    }
+
+}
+
+
+// ==========================================
+// DISPLAY RESULT
+// ==========================================
+
+function displayResult(data) {
+
+    resultSection.style.display = "block";
+
+
+    document.getElementById(
+        "transcription"
+    ).innerText =
+        data.transcription || "";
+
+
+    const product =
+        data.product || {};
+
+
+    document.getElementById("product_name").value =
+        product.product_name || "";
+
+
+    document.getElementById("category").value =
+        product.category || "";
+
+
+    document.getElementById("material").value =
+        product.material || "";
+
+
+    document.getElementById("colour").value =
+        product.colour || "";
+
+
+    document.getElementById("craft_technique").value =
+        product.craft_technique || "";
+
+
+    document.getElementById("usage").value =
+        product.usage || "";
+
+
+    document.getElementById("origin").value =
+        product.origin || "";
+
+
+    document.getElementById("price").value =
+        product.price || "";
+
+
+    const dimensions =
+        product.dimensions || {};
+
+
+    document.getElementById("length").value =
+        dimensions.length || "";
+
+
+    document.getElementById("width").value =
+        dimensions.width || "";
+
+
+    document.getElementById("height").value =
+        dimensions.height || "";
+
+
+    document.getElementById("unit").value =
+        dimensions.unit || "";
+
+
+    document.getElementById(
+        "care_instructions"
+    ).value =
+        product.care_instructions || "";
+
+
+    document.getElementById(
+        "special_features"
+    ).value =
+        Array.isArray(product.special_features)
+            ? product.special_features.join(", ")
+            : product.special_features || "";
+
+
+    // ==========================================
+    // MISSING FIELDS
+    // ==========================================
+
+    const missing =
+        data.missing_fields || [];
+
+
+    const missingBox =
+        document.getElementById("missingBox");
+
+
+    const missingList =
+        document.getElementById("missingList");
+
+
+    missingList.innerHTML = "";
+
+
+    if (missing.length > 0) {
+
+        missingBox.style.display = "block";
+
+
+        missing.forEach(function(field) {
+
+            const li =
+                document.createElement("li");
+
+            li.innerText =
+                field.replaceAll("_", " ");
+
+            missingList.appendChild(li);
+
+        });
+
+    }
+
+    else {
+
+        missingBox.style.display = "none";
+
+    }
+
+
+    voiceStatus.innerText =
+        "Product information extracted successfully.";
+
+}
+
+
+// ==========================================
+// RECORD AGAIN
+// ==========================================
+
+function recordAgain() {
+
+    resultSection.style.display = "none";
+
+    voiceStatus.innerText =
+        "Tap the microphone and start speaking";
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+
+}
+
+
+// ==========================================
+// CONFIRM PRODUCT
+// ==========================================
+
+function confirmProduct() {
+
+    alert(
+        "Product information confirmed!"
+    );
+
+}
+
+</script>
+
+</body>
+</html>
